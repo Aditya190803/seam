@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local Seam data
+.seam/
+
+# Node / npm artifacts
+node_modules/
+*.tgz
+site/node_modules/
+site/.next/
+site/out/
+site/.vercel/
+
+# Test/cache artifacts
+.pytest_cache/
+.coverage
+htmlcov/

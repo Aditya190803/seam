@@ -1,0 +1,73 @@
+[project]
+name = "seam-index"
+version = "0.1.0"
+description = "Local-first semantic codebase index for AI agents"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Aditya190803" },
+]
+keywords = ["ai", "agents", "code-search", "mcp", "rag", "semantic-search"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development",
+    "Topic :: Text Processing :: Indexing",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=3.4.0",
+    "lancedb>=0.33.0",
+    "openai>=2.41.0",
+    "pydantic-settings>=2.14.1",
+    "qdrant-client>=1.16.0",
+    "rich>=15.0.0",
+    "tree-sitter>=0.25.2",
+    "tree-sitter-language-pack>=1.8.1",
+    "typer>=0.26.7",
+    "watchdog>=6.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Aditya190803/seam"
+Documentation = "https://github.com/Aditya190803/seam#readme"
+Issues = "https://github.com/Aditya190803/seam/issues"
+Source = "https://github.com/Aditya190803/seam"
+
+[project.scripts]
+seam = "seam.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["seam"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+    "ruff>=0.14.6",
+]
+
+[tool.ruff]
+line-length = 140
+exclude = [
+    ".git",
+    ".venv",
+    "dist",
+    "build",
+    "site",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
