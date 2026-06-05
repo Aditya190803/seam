@@ -1,0 +1,7 @@
+interface:
+  display_name: Seam Code Search
+  short_description: Search indexed code with the Seam CLI before reading files.
+  default_prompt: Use Seam to find the most relevant code for my task, then read only the necessary file ranges.
+  brand_color: "#111827"
+policy:
+  allow_implicit_invocation: true
