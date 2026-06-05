@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  /* Base - warm charcoal with subtle warmth */
+  --base-950: oklch(0.15 0.008 50);
+  --base-900: oklch(0.25 0.008 50);
+  --base-800: oklch(0.35 0.007 50);
+  --base-700: oklch(0.45 0.006 50);
+  --base-600: oklch(0.55 0.005 50);
+  --base-500: oklch(0.65 0.004 50);
+  --base-400: oklch(0.75 0.003 50);
+  --base-300: oklch(0.85 0.002 50);
+  --base-200: oklch(0.92 0.001 50);
+  --base-100: oklch(0.97 0.001 50);
+  
+  /* Accent - amber for warmth and energy */
+  --accent-600: oklch(0.60 0.15 65);
+  --accent-500: oklch(0.70 0.14 65);
+  --accent-400: oklch(0.80 0.12 65);
+  
+  --background: var(--base-100);
+  --foreground: var(--base-950);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  --color-base-950: var(--base-950);
+  --color-base-900: var(--base-900);
+  --color-base-800: var(--base-800);
+  --color-base-700: var(--base-700);
+  --color-base-600: var(--base-600);
+  --color-base-500: var(--base-500);
+  --color-base-400: var(--base-400);
+  --color-base-300: var(--base-300);
+  --color-base-200: var(--base-200);
+  --color-base-100: var(--base-100);
+  
+  --color-accent-600: var(--accent-600);
+  --color-accent-500: var(--accent-500);
+  --color-accent-400: var(--accent-400);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Inverted base scale */
+    --base-950: oklch(0.97 0.001 50);
+    --base-900: oklch(0.92 0.001 50);
+    --base-800: oklch(0.85 0.002 50);
+    --base-700: oklch(0.75 0.003 50);
+    --base-600: oklch(0.65 0.004 50);
+    --base-500: oklch(0.55 0.005 50);
+    --base-400: oklch(0.45 0.006 50);
+    --base-300: oklch(0.35 0.007 50);
+    --base-200: oklch(0.25 0.008 50);
+    --base-100: oklch(0.15 0.008 50);
+    
+    /* Reduced chroma for dark mode */
+    --accent-600: oklch(0.60 0.13 65);
+    --accent-500: oklch(0.70 0.12 65);
+    --accent-400: oklch(0.80 0.10 65);
+    
+    --background: var(--base-100);
+    --foreground: var(--base-950);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
