@@ -85,7 +85,7 @@ function CopyButton({ text }: { text: string }) {
 function Nav() {
   return (
     <nav className="sticky top-0 z-50 border-b border-base-300/40 bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6 lg:px-8">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <a href="/" className="text-[1.125rem] font-bold tracking-tight text-base-950">
           Seam
         </a>
@@ -137,13 +137,13 @@ export default function Home() {
       <Nav />
 
       {/* ═══════ HERO ═══════ */}
-      <section className="relative overflow-hidden px-6 pt-16 pb-12 md:px-8 lg:pt-20 lg:pb-16">
+      <section className="relative overflow-hidden px-4 pt-10 pb-8 sm:px-6 md:px-8 md:pt-16 md:pb-12 lg:pt-20 lg:pb-16">
         <DotGrid />
 
         <div className="relative mx-auto max-w-6xl">
           <div className="flex flex-col items-center text-center">
             <FadeIn>
-              <h1 className="max-w-4xl text-[clamp(2.5rem,6.5vw,5rem)] font-bold leading-[1.02] tracking-[-0.035em] text-base-950">
+              <h1 className="max-w-4xl text-[clamp(2rem,6.5vw,5rem)] font-bold leading-[1.02] tracking-[-0.035em] text-base-950">
                 Your codebase,
                 <br />
                 indexed once.
@@ -171,8 +171,8 @@ export default function Home() {
                       macOS / Linux
                     </span>
                   </div>
-                <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-1.5">
-                  <code className="whitespace-nowrap font-mono text-[13px] text-base-950">
+                <div className="mt-2 flex items-center justify-between gap-3 overflow-x-auto rounded-lg border border-base-300 bg-base-100 px-3 py-1.5">
+                  <code className="whitespace-nowrap font-mono text-[11px] text-base-950 sm:text-[13px]">
                     <span className="text-accent-600">$</span> {curlCmd}
                   </code>
                   <CopyButton text={curlCmd} />
@@ -181,10 +181,10 @@ export default function Home() {
             </FadeIn>
 
             <FadeIn delay={240}>
-              <div className="mt-5 flex gap-4 text-sm">
+              <div className="mt-5 flex w-full flex-col gap-3 text-sm sm:w-auto sm:flex-row sm:gap-4">
                 <a
                   href="#install"
-                  className="inline-flex h-11 items-center justify-center rounded bg-base-950 px-5 text-sm font-medium text-base-100 transition-colors hover:bg-base-900"
+                  className="inline-flex h-11 w-full items-center justify-center rounded bg-base-950 px-5 text-sm font-medium text-base-100 transition-colors hover:bg-base-900 sm:w-auto"
                 >
                   Get Started
                 </a>
@@ -192,7 +192,7 @@ export default function Home() {
                   href="https://github.com/Aditya190803/seam"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-11 items-center justify-center rounded border border-base-300 bg-transparent px-5 text-sm font-medium text-base-950 transition-colors hover:bg-base-200"
+                  className="inline-flex h-11 w-full items-center justify-center rounded border border-base-300 bg-transparent px-5 text-sm font-medium text-base-950 transition-colors hover:bg-base-200 sm:w-auto"
                 >
                   View on GitHub
                 </a>
@@ -205,7 +205,7 @@ export default function Home() {
       <Rule />
 
       {/* ═══════ HOW IT WORKS ═══════ */}
-      <section className="px-6 py-20 md:px-8 lg:py-28">
+      <section className="px-4 py-14 sm:px-6 md:px-8 md:py-20 lg:py-28">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <div className="flex items-baseline gap-3">
@@ -257,7 +257,7 @@ export default function Home() {
       <Rule />
 
       {/* ═══════ FEATURES ═══════ */}
-      <section className="bg-base-200/15 px-6 py-20 md:px-8 lg:py-28">
+      <section className="bg-base-200/15 px-4 py-14 sm:px-6 md:px-8 md:py-20 lg:py-28">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <div className="flex items-baseline gap-3">
@@ -273,12 +273,12 @@ export default function Home() {
           {/* Asymmetric feature stack */}
           <div className="mt-14 space-y-0">
             <FadeIn delay={100}>
-              <div className="grid gap-8 border-b border-base-300 py-10 lg:grid-cols-[1fr_1.5fr]">
+              <div className="grid gap-6 border-b border-base-300 py-8 md:gap-8 md:py-10 lg:grid-cols-[1fr_1.5fr]">
                 <div>
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
                     Local-first
                   </div>
-                  <h3 className="mt-2 text-2xl font-semibold leading-tight text-base-950">
+                  <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
                     Your code never leaves your machine
                   </h3>
                 </div>
@@ -289,7 +289,7 @@ export default function Home() {
             </FadeIn>
 
             <FadeIn delay={180}>
-              <div className="grid gap-8 border-b border-base-300 py-10 lg:grid-cols-[1.5fr_1fr]">
+              <div className="grid gap-6 border-b border-base-300 py-8 md:gap-8 md:py-10 lg:grid-cols-[1.5fr_1fr]">
                 <p className="order-2 text-base leading-relaxed text-base-600 lg:order-1 lg:pt-6">
                   SQLite backend, deterministic embeddings, automatic file watching. Works the moment you install. No yaml to write, no daemons to manage.
                 </p>
@@ -297,7 +297,7 @@ export default function Home() {
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
                     Zero-config
                   </div>
-                  <h3 className="mt-2 text-2xl font-semibold leading-tight text-base-950">
+                  <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
                     Sensible defaults
                   </h3>
                 </div>
@@ -305,12 +305,12 @@ export default function Home() {
             </FadeIn>
 
             <FadeIn delay={260}>
-              <div className="grid gap-8 border-b border-base-300 py-10 lg:grid-cols-[1fr_1.5fr]">
+              <div className="grid gap-6 border-b border-base-300 py-8 md:gap-8 md:py-10 lg:grid-cols-[1fr_1.5fr]">
                 <div>
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
                     Incremental
                   </div>
-                  <h3 className="mt-2 text-2xl font-semibold leading-tight text-base-950">
+                  <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
                     Smart indexing
                   </h3>
                 </div>
@@ -321,7 +321,7 @@ export default function Home() {
             </FadeIn>
 
             <FadeIn delay={340}>
-              <div className="grid gap-8 border-b border-base-300 py-10 lg:grid-cols-[1.5fr_1fr]">
+              <div className="grid gap-6 border-b border-base-300 py-8 md:gap-8 md:py-10 lg:grid-cols-[1.5fr_1fr]">
                 <p className="order-2 text-base leading-relaxed text-base-600 lg:order-1 lg:pt-6">
                   FastMCP server with search_code, list_files, get_chunk tools. Works with Claude, Codex, Cursor, and any MCP client out of the box.
                 </p>
@@ -329,7 +329,7 @@ export default function Home() {
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
                     MCP ready
                   </div>
-                  <h3 className="mt-2 text-2xl font-semibold leading-tight text-base-950">
+                  <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
                     FastMCP server
                   </h3>
                 </div>
@@ -337,12 +337,12 @@ export default function Home() {
             </FadeIn>
 
             <FadeIn delay={420}>
-              <div className="grid gap-8 py-10 lg:grid-cols-[1fr_1.5fr]">
+              <div className="grid gap-6 py-8 md:gap-8 md:py-10 lg:grid-cols-[1fr_1.5fr]">
                 <div>
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
                     Portable
                   </div>
-                  <h3 className="mt-2 text-2xl font-semibold leading-tight text-base-950">
+                  <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
                     Export / Import
                   </h3>
                 </div>
@@ -356,7 +356,7 @@ export default function Home() {
       </section>
 
       {/* ═══════ BACKENDS ═══════ */}
-      <section className="px-6 py-20 md:px-8 lg:py-28">
+      <section className="px-4 py-14 sm:px-6 md:px-8 md:py-20 lg:py-28">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <div className="flex items-baseline gap-3">
@@ -373,39 +373,39 @@ export default function Home() {
           </FadeIn>
 
           <FadeIn delay={100}>
-            <div className="mt-12 grid gap-px bg-base-300 md:grid-cols-3">
+            <div className="mt-10 grid gap-px bg-base-300 md:mt-12 md:grid-cols-3">
               {/* SQLite */}
-              <div className="bg-background p-7">
+              <div className="bg-background p-5 md:p-7">
                 <div className="font-mono text-xs font-semibold text-accent-600">Default</div>
                 <h3 className="mt-2 text-xl font-semibold text-base-950">SQLite</h3>
                 <p className="mt-2 text-sm leading-relaxed text-base-600">
                   Local vector store with no dependencies. Ships with Seam. Zero setup.
                 </p>
-                <div className="mt-4 font-mono text-xs text-base-500">
+                <div className="mt-4 overflow-x-auto font-mono text-xs text-base-500">
                   seam config set backend sqlite
                 </div>
               </div>
 
               {/* LanceDB */}
-              <div className="bg-background p-7">
+              <div className="bg-background p-5 md:p-7">
                 <div className="font-mono text-xs font-semibold text-accent-600">Local</div>
                 <h3 className="mt-2 text-xl font-semibold text-base-950">LanceDB</h3>
                 <p className="mt-2 text-sm leading-relaxed text-base-600">
                   Disk-based vector DB for larger codebases. Efficient columnar storage.
                 </p>
-                <div className="mt-4 font-mono text-xs text-base-500">
+                <div className="mt-4 overflow-x-auto font-mono text-xs text-base-500">
                   seam config set backend lancedb
                 </div>
               </div>
 
               {/* Qdrant */}
-              <div className="bg-background p-7">
+              <div className="bg-background p-5 md:p-7">
                 <div className="font-mono text-xs font-semibold text-accent-600">Remote</div>
                 <h3 className="mt-2 text-xl font-semibold text-base-950">Qdrant</h3>
                 <p className="mt-2 text-sm leading-relaxed text-base-600">
                   Remote vector backend with metadata-only payloads. Source stays local.
                 </p>
-                <div className="mt-4 font-mono text-xs text-base-500">
+                <div className="mt-4 overflow-x-auto font-mono text-xs text-base-500">
                   seam config set backend qdrant
                 </div>
               </div>
@@ -413,9 +413,9 @@ export default function Home() {
           </FadeIn>
 
           <FadeIn delay={200}>
-            <div className="mt-8 grid gap-px bg-base-300 md:grid-cols-3">
+            <div className="mt-6 grid gap-px bg-base-300 md:mt-8 md:grid-cols-3">
               {/* Local embeddings */}
-              <div className="bg-background p-7">
+              <div className="bg-background p-5 md:p-7">
                 <div className="font-mono text-xs font-semibold text-accent-600">Default</div>
                 <h3 className="mt-2 text-xl font-semibold text-base-950">Local</h3>
                 <p className="mt-2 text-sm leading-relaxed text-base-600">
@@ -424,7 +424,7 @@ export default function Home() {
               </div>
 
               {/* OpenAI */}
-              <div className="bg-background p-7">
+              <div className="bg-background p-5 md:p-7">
                 <div className="font-mono text-xs font-semibold text-accent-600">Cloud</div>
                 <h3 className="mt-2 text-xl font-semibold text-base-950">OpenAI</h3>
                 <p className="mt-2 text-sm leading-relaxed text-base-600">
@@ -433,7 +433,7 @@ export default function Home() {
               </div>
 
               {/* Ollama */}
-              <div className="bg-background p-7">
+              <div className="bg-background p-5 md:p-7">
                 <div className="font-mono text-xs font-semibold text-accent-600">Local AI</div>
                 <h3 className="mt-2 text-xl font-semibold text-base-950">Ollama</h3>
                 <p className="mt-2 text-sm leading-relaxed text-base-600">
@@ -448,7 +448,7 @@ export default function Home() {
       <Rule />
 
       {/* ═══════ INSTALL ═══════ */}
-      <section id="install" className="bg-base-200/15 px-6 py-20 md:px-8 lg:py-28">
+      <section id="install" className="bg-base-200/15 px-4 py-14 sm:px-6 md:px-8 md:py-20 lg:py-28">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <div className="flex items-baseline gap-3">
@@ -465,12 +465,12 @@ export default function Home() {
           </FadeIn>
 
           <FadeIn delay={100}>
-            <div className="mt-12 space-y-8">
+            <div className="mt-10 space-y-8 md:mt-12">
               {/* Quick install — full width */}
               <div>
                 <div className="mb-2 text-sm font-semibold text-base-950">Quick install</div>
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-1.5">
-                  <code className="whitespace-nowrap font-mono text-[13px] text-base-950">
+                <div className="flex items-center justify-between gap-3 overflow-x-auto rounded-lg border border-base-300 bg-base-100 px-3 py-1.5">
+                  <code className="whitespace-nowrap font-mono text-[11px] text-base-950 sm:text-[13px]">
                     <span className="text-accent-600">$</span> {curlCmd}
                   </code>
                   <CopyButton text={curlCmd} />
@@ -481,13 +481,13 @@ export default function Home() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <div className="mb-2 text-sm font-semibold text-base-950">uv</div>
-                  <div className="rounded-lg border border-base-300 bg-base-100 px-4 py-3">
+                  <div className="overflow-x-auto rounded-lg border border-base-300 bg-base-100 px-4 py-3">
                     <code className="font-mono text-sm text-base-950">uv tool install seam-index</code>
                   </div>
                 </div>
                 <div>
                   <div className="mb-2 text-sm font-semibold text-base-950">pipx</div>
-                  <div className="rounded-lg border border-base-300 bg-base-100 px-4 py-3">
+                  <div className="overflow-x-auto rounded-lg border border-base-300 bg-base-100 px-4 py-3">
                     <code className="font-mono text-sm text-base-950">pipx install seam-index</code>
                   </div>
                 </div>
@@ -496,7 +496,7 @@ export default function Home() {
               {/* Index and search */}
               <div>
                 <div className="mb-2 text-sm font-semibold text-base-950">Index and search</div>
-                <pre className="rounded-lg border border-base-300 bg-base-100 p-5">
+                <pre className="overflow-x-auto rounded-lg border border-base-300 bg-base-100 p-5">
                   <code className="font-mono text-sm text-base-950">
 {`# Index your repo
 $ seam init .
@@ -517,7 +517,7 @@ $ seam context "database pooling"`}
       <Rule />
 
       {/* ═══════ WHY SEAM ═══════ */}
-      <section className="px-6 py-20 md:px-8 lg:py-28">
+      <section className="px-4 py-14 sm:px-6 md:px-8 md:py-20 lg:py-28">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <div className="flex items-baseline gap-3">
@@ -579,7 +579,7 @@ $ seam context "database pooling"`}
       <Rule />
 
       {/* ═══════ CTA ═══════ */}
-      <section className="bg-neutral-950 px-6 py-20 md:px-8 lg:py-28">
+      <section className="bg-neutral-950 px-4 py-14 sm:px-6 md:px-8 md:py-20 lg:py-28">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <h2 className="max-w-3xl text-[clamp(2.25rem,5.5vw,3.75rem)] font-bold leading-[1.05] tracking-[-0.03em] text-white">
@@ -592,7 +592,7 @@ $ seam context "database pooling"`}
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <a
                 href="#install"
-                className="inline-flex h-12 items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-neutral-950 transition-colors hover:bg-accent-400"
+                className="inline-flex h-12 w-full items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-neutral-950 transition-colors hover:bg-accent-400 sm:w-auto"
               >
                 Get Started
               </a>
@@ -600,7 +600,7 @@ $ seam context "database pooling"`}
                 href="https://github.com/Aditya190803/seam"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-12 items-center justify-center rounded border border-neutral-700 bg-transparent px-6 text-base font-medium text-neutral-300 transition-colors hover:bg-neutral-800"
+                className="inline-flex h-12 w-full items-center justify-center rounded border border-neutral-700 bg-transparent px-6 text-base font-medium text-neutral-300 transition-colors hover:bg-neutral-800 sm:w-auto"
               >
                 View on GitHub
               </a>
@@ -612,7 +612,7 @@ $ seam context "database pooling"`}
       <Rule />
 
       {/* ═══════ FOOTER ═══════ */}
-      <footer className="px-6 py-10 md:px-8">
+      <footer className="px-4 py-8 sm:px-6 md:px-8 md:py-10">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
             <div>
