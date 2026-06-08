@@ -2,6 +2,12 @@
 
 All notable changes to Seam will be documented in this file.
 
+## 1.0.2
+
+- Bump Python package version after the `1.0.0` PyPI release.
+- Make the PyPI publish step safe to rerun by skipping versions that already exist on PyPI.
+- Make the npm skill publish step safe to rerun by skipping versions that already exist on npm.
+
 ## 1.0.0 - Initial public release
 
 - First stable release of Seam.

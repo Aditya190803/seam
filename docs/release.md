@@ -24,18 +24,18 @@ uv build
 
 ## PyPI
 
-The GitHub Release workflow publishes to PyPI on `v*.*.*` tag pushes via trusted publishing. Manual workflow dispatch publishes only when `publish=true`.
+The GitHub Release workflow publishes to PyPI on `v*.*.*` tag pushes via trusted publishing. Manual workflow dispatch publishes only when `publish=true`. Reruns query PyPI first and skip publishing when that package version already exists.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.0.2
+git push origin v1.0.2
 ```
 
 ## npm skill installer
 
 The npx installer lives in `npm/seam-skill` and publishes as `@aditya190803/seam-skill`.
 
-The Release workflow publishes it on tag pushes when `NPM_TOKEN` is configured, and on manual workflow dispatch when `publish=true` and `NPM_TOKEN` is configured.
+The Release workflow publishes it on tag pushes when `NPM_TOKEN` is configured, and on manual workflow dispatch when `publish=true` and `NPM_TOKEN` is configured. Reruns skip the publish step when the package version already exists on npm.
 
 Manual smoke test:
 

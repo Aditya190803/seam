@@ -1,6 +1,6 @@
 [project]
 name = "seam-index"
-version = "1.0.0"
+version = "1.0.2"
 description = "Local-first semantic codebase index for AI agents"
 readme = "README.md"
 license = "MIT"
