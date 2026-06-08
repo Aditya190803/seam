@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 /* ─── Intersection fade-in ─── */
@@ -86,9 +87,9 @@ function Nav() {
   return (
     <nav className="sticky top-0 z-50 border-b border-base-300/40 bg-background/90 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <a href="/" className="text-[1.125rem] font-bold tracking-tight text-base-950">
+        <Link href="/" className="text-[1.125rem] font-bold tracking-tight text-base-950">
           Seam
-        </a>
+        </Link>
         <div className="flex items-center gap-8 text-sm font-medium">
           <a
             href="https://github.com/Aditya190803/seam"
@@ -155,8 +156,8 @@ export default function Home() {
             <FadeIn delay={80}>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-base-600">
                 Seam is a local-first CLI and MCP server that gives coding agents
-                semantic access to your repository. No more re-reading the entire
-                codebase on every task.
+                precise code retrieval: semantic search, exact grep, scoped reindexing,
+                and agent-ready JSON without re-reading the whole repo.
               </p>
             </FadeIn>
 
@@ -223,17 +224,17 @@ export default function Home() {
               {
                 num: "01",
                 title: "Index",
-                desc: "Run seam init . Seam walks your repo, chunks files with tree-sitter, computes embeddings, and stores everything in a local vector database.",
+                desc: "Run seam init . Seam walks your repo, respects .seamignore, chunks files with tree-sitter, computes embeddings, and stores the index locally.",
               },
               {
                 num: "02",
                 title: "Search",
-                desc: "Query with natural language. Hybrid vector + keyword ranking surfaces the most relevant code across your entire codebase in milliseconds.",
+                desc: "Query with natural language, exact patterns, file globs, changed-file filters, or every indexed repo. Hybrid ranking keeps results relevant.",
               },
               {
                 num: "03",
                 title: "Context",
-                desc: "seam context generates formatted code blocks your agent can paste directly. XML, markdown, or JSON. Ready for Claude, Codex, Cursor.",
+                desc: "seam context and --json output return file, line, symbol, and scope metadata agents can cite before editing. XML, markdown, or JSON.",
               },
             ].map((step, i) => (
               <FadeIn key={step.num} delay={i * 130}>
@@ -279,11 +280,11 @@ export default function Home() {
                     Local-first
                   </div>
                   <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
-                    Your code never leaves your machine
+                    Your index lives on your machine
                   </h3>
                 </div>
                 <p className="text-base leading-relaxed text-base-600 lg:pt-6">
-                  Offline embeddings, local vector store, zero external dependencies. Privacy by design, not by policy. No API keys, no rate limits, no network required.
+                  Offline embeddings, local storage, and metadata-only remote backends. Source snippets stay in your repo and local Seam index.
                 </p>
               </div>
             </FadeIn>
@@ -291,14 +292,14 @@ export default function Home() {
             <FadeIn delay={180}>
               <div className="grid gap-6 border-b border-base-300 py-8 md:gap-8 md:py-10 lg:grid-cols-[1.5fr_1fr]">
                 <p className="order-2 text-base leading-relaxed text-base-600 lg:order-1 lg:pt-6">
-                  SQLite backend, deterministic embeddings, automatic file watching. Works the moment you install. No yaml to write, no daemons to manage.
+                  `seam reindex path/to/file.py` refreshes one file. Directory scopes work too. Deleted files are detected, and `seam gc` removes stale entries.
                 </p>
                 <div className="order-1 lg:order-2 lg:text-right">
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
-                    Zero-config
+                    Scoped refresh
                   </div>
                   <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
-                    Sensible defaults
+                    Re-index only what changed
                   </h3>
                 </div>
               </div>
@@ -308,14 +309,14 @@ export default function Home() {
               <div className="grid gap-6 border-b border-base-300 py-8 md:gap-8 md:py-10 lg:grid-cols-[1fr_1.5fr]">
                 <div>
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
-                    Incremental
+                    Exact retrieval
                   </div>
                   <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
-                    Smart indexing
+                    Semantic search when you need meaning, grep when you need a string
                   </h3>
                 </div>
                 <p className="text-base leading-relaxed text-base-600 lg:pt-6">
-                  File hashing and tree-sitter chunking. Only re-index what changed. Merkle tree tracks state. Watch mode keeps it fresh automatically.
+                  `seam search` handles natural language. `seam grep` searches exact literals or regex patterns inside indexed chunks with filename and language filters.
                 </p>
               </div>
             </FadeIn>
@@ -323,14 +324,14 @@ export default function Home() {
             <FadeIn delay={340}>
               <div className="grid gap-6 border-b border-base-300 py-8 md:gap-8 md:py-10 lg:grid-cols-[1.5fr_1fr]">
                 <p className="order-2 text-base leading-relaxed text-base-600 lg:order-1 lg:pt-6">
-                  FastMCP server with search_code, list_files, get_chunk tools. Works with Claude, Codex, Cursor, and any MCP client out of the box.
+                  Restrict results to files changed since the index, search across every registered repo, count matches by file, or filter with `--name` and `--exclude` globs.
                 </p>
                 <div className="order-1 lg:order-2 lg:text-right">
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
-                    MCP ready
+                    Agent filters
                   </div>
                   <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
-                    FastMCP server
+                    Query the right slice of code
                   </h3>
                 </div>
               </div>
@@ -340,14 +341,14 @@ export default function Home() {
               <div className="grid gap-6 py-8 md:gap-8 md:py-10 lg:grid-cols-[1fr_1.5fr]">
                 <div>
                   <div className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-accent-600">
-                    Portable
+                    Machine-readable
                   </div>
                   <h3 className="mt-2 text-xl font-semibold leading-tight text-base-950 md:text-2xl">
-                    Export / Import
+                    JSON designed for coding agents
                   </h3>
                 </div>
                 <p className="text-base leading-relaxed text-base-600 lg:pt-6">
-                  Move your index between machines. Share with teammates. No re-indexing. Archive and restore with a single command.
+                  Search output includes duration, score, file, line range, symbol name, enclosing scope, and snippet. `docs/seam.schema.json` documents the contract.
                 </p>
               </div>
             </FadeIn>
@@ -368,7 +369,7 @@ export default function Home() {
               </h2>
             </div>
             <p className="mt-4 max-w-2xl text-lg text-base-600">
-              Pick what works for your stack. Default is local SQLite + deterministic embeddings for zero-config, offline operation.
+              Pick what works for your stack. Default is local SQLite plus deterministic embeddings for zero-config, offline operation.
             </p>
           </FadeIn>
 
@@ -501,8 +502,15 @@ export default function Home() {
 {`# Index your repo
 $ seam init .
 
-# Search instantly
+# Search semantically or exactly
 $ seam search "JWT validation"
+$ seam grep "validate_jwt" --name "*.py"
+
+# Refresh one file after editing
+$ seam reindex app/auth.py
+
+# Ask only about changed files
+$ seam search "risk in auth changes" --changed --json
 
 # Generate context for agents
 $ seam context "database pooling"`}
@@ -559,10 +567,10 @@ $ seam context "database pooling"`}
                 </div>
                 <ul className="space-y-3 text-base text-base-950">
                   {[
-                    "Semantic search finds relevant code instantly",
-                    "Context stays focused and precise",
-                    "Fast, accurate responses every time",
-                    "Works completely offline, no API calls",
+                    "Semantic search and grep find the right code instantly",
+                    "Changed-file filters keep reviews focused",
+                    ".seamignore keeps generated files out of the index",
+                    "Works offline by default, no API calls required",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-3">
                       <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-accent-500" />
@@ -586,8 +594,8 @@ $ seam context "database pooling"`}
               Stop feeding your agent the entire repo
             </h2>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-neutral-400">
-              Index once. Query forever. Give your AI coding agent the context
-              it actually needs, without the noise.
+              Index once. Search semantically, grep exactly, refresh only what changed,
+              and give your coding agent context it can trust.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <a
