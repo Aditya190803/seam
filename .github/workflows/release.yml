@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publish to PyPI, npm, and GHCR'
+        description: 'Publish to PyPI and npm'
         required: true
         default: 'false'
         type: choice
@@ -16,7 +16,6 @@ on:
 permissions:
   contents: write
   id-token: write
-  packages: write
 
 jobs:
   build-python:
@@ -46,11 +45,13 @@ jobs:
           name: python-dist
           path: dist/*
       - name: Publish to PyPI
-        if: inputs.publish == 'true'
+        if: github.event_name == 'push' || inputs.publish == 'true'
         run: uv publish
 
   build-npm-skill:
     runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -61,10 +62,8 @@ jobs:
         working-directory: npm/seam-skill
         run: npm pack --dry-run
       - name: Publish npm skill installer
-        if: inputs.publish == 'true'
+        if: (github.event_name == 'push' || inputs.publish == 'true') && env.NODE_AUTH_TOKEN != ''
         working-directory: npm/seam-skill
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
   github-release:

@@ -1,39 +1,48 @@
 # Seam release checklist
 
+## Versioning
+
+1. Update `version` in `pyproject.toml`, `seam/__init__.py`, and `npm/seam-skill/package.json`.
+2. Update `CHANGELOG.md` with user-visible changes.
+3. Verify skill assets stay in sync:
+   - `skills/seam-code-search/SKILL.md`
+   - `seam/agent_skill/seam-code-search/SKILL.md`
+   - `npm/seam-skill/skills/seam-code-search/SKILL.md`
+
+## Local validation
+
+```bash
+uv run ruff check .
+uv run pytest -q
+uv run python -m compileall seam main.py scripts/benchmark.py
+bash -n scripts/install.sh
+node npm/seam-skill/bin/seam-skill.js install --dry-run
+cd npm/seam-skill && npm pack --dry-run
+cd ../..
+uv build
+```
+
 ## PyPI
 
-1. Update `version` in `pyproject.toml` and `seam/__init__.py`.
-2. Run validation:
+The GitHub Release workflow publishes to PyPI on `v*.*.*` tag pushes via trusted publishing. Manual workflow dispatch publishes only when `publish=true`.
 
-   ```bash
-   uv run pytest -q
-   uv run python -m compileall seam main.py
-   uv build
-   ```
-
-3. Tag a release and push it:
-
-   ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
-   ```
-
-The `Release` GitHub Actions workflow builds Python artifacts, publishes PyPI via trusted publishing, publishes the npm skill installer when `NPM_TOKEN` is configured, builds/pushes Docker to GHCR, generates `SHA256SUMS.txt`, and creates a GitHub release.
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
 
 ## npm skill installer
 
 The npx installer lives in `npm/seam-skill` and publishes as `@aditya190803/seam-skill`.
 
-```bash
-cd npm/seam-skill
-npm pack --dry-run
-npm publish --access public
-```
+The Release workflow publishes it on tag pushes when `NPM_TOKEN` is configured, and on manual workflow dispatch when `publish=true` and `NPM_TOKEN` is configured.
 
-Smoke test before publishing:
+Manual smoke test:
 
 ```bash
 node npm/seam-skill/bin/seam-skill.js install --dry-run
+cd npm/seam-skill
+npm pack --dry-run
 ```
 
 ## Linux curl installer
@@ -49,24 +58,6 @@ Validate locally:
 
 ```bash
 bash -n scripts/install.sh
-```
-
-## Docker
-
-Build and smoke-test locally:
-
-```bash
-docker build -t seam-index:local .
-docker run --rm seam-index:local --help
-```
-
-Index a mounted repository:
-
-```bash
-docker run --rm \
-  -v "$PWD:/workspace" \
-  -v "$HOME/.seam:/data/.seam" \
-  seam-index:local init /workspace
 ```
 
 ## Homebrew
@@ -86,4 +77,4 @@ Before publishing a tap:
 
 ## Release notes
 
-Mention backend support for SQLite, LanceDB, and Qdrant; embedding support for local deterministic, OpenAI-compatible, and Ollama providers; FastMCP stdio/HTTP transport support; `seam install-skill`; and the npm/curl installers.
+Mention backend support for SQLite, LanceDB, and Qdrant; embedding support for local deterministic, OpenAI-compatible, and Ollama providers; FastMCP stdio/HTTP transport support; `seam install-skill`; npm/curl installers; scoped reindexing; `.seamignore`; grep/exact search; changed-file search; index GC; and JSON schema output.

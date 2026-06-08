@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://seam.adityamer.dev/schema/seam.schema.json",
+  "title": "Seam CLI JSON Output",
+  "oneOf": [
+    { "$ref": "#/$defs/searchResponse" },
+    { "$ref": "#/$defs/statusResponse" },
+    { "$ref": "#/$defs/configResponse" }
+  ],
+  "$defs": {
+    "searchResponse": {
+      "type": "object",
+      "required": ["duration_ms", "results"],
+      "properties": {
+        "duration_ms": { "type": "number", "minimum": 0 },
+        "results": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/searchResult" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "searchResult": {
+      "type": "object",
+      "required": ["rank", "score", "file", "start_line", "end_line", "language", "snippet"],
+      "properties": {
+        "rank": { "type": "integer", "minimum": 1 },
+        "score": { "type": "number" },
+        "file": { "type": "string" },
+        "start_line": { "type": "integer", "minimum": 1 },
+        "end_line": { "type": "integer", "minimum": 1 },
+        "language": { "type": "string" },
+        "snippet": { "type": "string" },
+        "name": { "type": "string" },
+        "scope": { "type": "string" },
+        "scope_start_line": { "type": "integer", "minimum": 1 },
+        "scope_end_line": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "statusResponse": {
+      "type": "object",
+      "required": ["repo_id", "repo_path", "index_path", "backend", "files", "chunks"],
+      "properties": {
+        "repo_id": { "type": "string" },
+        "repo_path": { "type": "string" },
+        "index_path": { "type": "string" },
+        "backend": { "type": "string" },
+        "embedding_provider": { "type": "string" },
+        "embedding_model": { "type": "string" },
+        "files": { "type": "integer", "minimum": 0 },
+        "chunks": { "type": "integer", "minimum": 0 },
+        "last_indexed_at": { "type": ["string", "null"] },
+        "updated_files": { "type": "integer", "minimum": 0 },
+        "deleted_files": { "type": "integer", "minimum": 0 },
+        "skipped_files": { "type": "integer", "minimum": 0 },
+        "languages": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "tree_hash": { "type": ["string", "null"] },
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "updated_file_paths": { "type": "array", "items": { "type": "string" } },
+        "deleted_file_paths": { "type": "array", "items": { "type": "string" } },
+        "branch": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "configResponse": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

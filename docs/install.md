@@ -15,7 +15,7 @@ curl -fsSL https://seam.adityamer.dev/install.sh | bash -s -- --with-skills
 Install from a pinned tag after release:
 
 ```bash
-curl -fsSL https://seam.adityamer.dev/install.sh | bash -s -- --version v0.1.0
+curl -fsSL https://seam.adityamer.dev/install.sh | bash -s -- --version v1.0.0
 ```
 
 ## Python tool installers
@@ -40,13 +40,6 @@ python3 -m pip install --user seam-index
 
 ```bash
 npx @aditya190803/seam-skill install
-```
-
-## Docker
-
-```bash
-docker build -t seam-index .
-docker run --rm -v "$PWD:/workspace" -v "$HOME/.seam:/data/.seam" seam-index init /workspace
 ```
 
 ## Verify

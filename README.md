@@ -67,13 +67,6 @@ The skill is installed to:
 - Codex: `~/.agents/skills/seam-code-search` or `.agents/skills/seam-code-search`
 - Claude Code: `~/.claude/skills/seam-code-search` or `.claude/skills/seam-code-search`
 
-### Docker
-
-```bash
-docker build -t seam-index .
-docker run --rm -v "$PWD:/workspace" -v "$HOME/.seam:/data/.seam" seam-index init /workspace
-```
-
 ### Local development
 
 ```bash
@@ -123,11 +116,14 @@ See [docs/agent-skills.md](docs/agent-skills.md) for details. Once installed, as
 ## Commands
 
 ```bash
-seam init [path]              Index a codebase
-seam reindex [path]           Force a full re-index
-seam search [opts] <query>    Search indexed code
+seam init [path]              Index a codebase; use --warm to warm local index files
+seam reindex [path]           Re-index a repository, file, or directory subtree
+seam search [opts] <query>    Search indexed code semantically or with hybrid ranking
+seam grep [opts] <pattern>    Exact literal/regex search over indexed chunks
 seam context [opts] <query>   Generate markdown/xml/json context blocks
-seam status                   Show index freshness and metadata
+seam status [--size]          Show index freshness, metadata, and optional disk size
+seam gc                       Remove index entries for files no longer on disk
+seam check                    Script-friendly health check
 seam watch [path]             Watch files and refresh the index
 seam serve                    Start MCP server on stdio transport
 seam serve --http <port>      Start MCP server over HTTP when supported by FastMCP
@@ -135,9 +131,13 @@ seam export <archive.tar.gz>  Export a local index archive
 seam import <archive.tar.gz>  Import a local index archive
 seam doctor                   Check dependencies and service reachability
 seam install-skill            Install the Seam Code Search Agent Skill
-seam config show              Print current configuration
+seam config show|list         Print current configuration
 seam config set <key> <value> Set a configuration value
 ```
+
+Useful search options include `--path` (repeatable), `--all-repos`, `--language`, `--name`, `--exclude`, `--mode hybrid|semantic|keyword`, `--exact`, `--changed`, `--count`, `--min-score`, and `--alpha`.
+
+JSON search output is an object with `duration_ms` and `results`; see [`docs/seam.schema.json`](docs/seam.schema.json) for the machine-readable schema.
 
 ## Current implementation
 
@@ -149,9 +149,9 @@ This repository implements the Seam product shape with production backends where
 - SQLite local vector store
 - LanceDB local vector backend
 - Qdrant remote vector backend using metadata-only payloads; source snippets stay in the local Seam metadata store and local repo
-- Incremental file hashing, deletion detection, and persisted Merkle tree metadata
+- Incremental file hashing, scoped reindexing, deletion detection, `.seamignore` glob exclusions, and persisted Merkle tree metadata
 - Optional tree-sitter chunking through `tree-sitter-language-pack`, with Python AST and structural fallbacks
-- Hybrid vector + keyword ranking
+- Hybrid vector + keyword ranking with filename/exclusion filters, exact grep-style search, all-repo search, and changed-file filtering
 - Watchdog-based `seam watch` with `localhost:7731/health`
 - FastMCP tools: `search_code`, `list_files`, `get_chunk`, `index_status`
 - `seam export` / `seam import` for portable local index archives
