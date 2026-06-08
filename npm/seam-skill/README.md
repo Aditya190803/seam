@@ -2,11 +2,11 @@
 
 Install the portable **Seam Code Search** Agent Skill for AI coding agents.
 
-The skill teaches agents to use the `seam` CLI for semantic code search before reading many files.
+This package delegates installation to the [skills.sh](https://www.skills.sh/docs) CLI, so it can target all supported agents instead of hardcoding only Codex/Claude paths.
 
 ## Install
 
-User-level install for both Codex and Claude Code:
+Global install to all skills.sh-supported agents:
 
 ```bash
 npx @aditya190803/seam-skill install
@@ -18,19 +18,14 @@ Project-level install into the current repository:
 npx @aditya190803/seam-skill install --project
 ```
 
-Install only for one agent:
+Install only for specific agents:
 
 ```bash
+npx @aditya190803/seam-skill install --agent claude-code --agent pi
 npx @aditya190803/seam-skill install --codex
 npx @aditya190803/seam-skill install --claude
+npx @aditya190803/seam-skill install --pi
 ```
-
-## Skill locations
-
-- Codex user scope: `~/.agents/skills/seam-code-search/SKILL.md`
-- Claude Code user scope: `~/.claude/skills/seam-code-search/SKILL.md`
-- Codex project scope: `.agents/skills/seam-code-search/SKILL.md`
-- Claude Code project scope: `.claude/skills/seam-code-search/SKILL.md`
 
 ## Install Seam CLI
 

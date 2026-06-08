@@ -50,7 +50,7 @@ python3 -m pip install --user seam-index
 
 ### AI agent skill installer
 
-Install the portable Seam skill for Codex and Claude Code:
+Install the portable Seam skill through skills.sh for supported AI coding agents:
 
 ```bash
 npx @aditya190803/seam-skill install
@@ -62,10 +62,7 @@ Project-local skill install:
 npx @aditya190803/seam-skill install --project
 ```
 
-The skill is installed to:
-
-- Codex: `~/.agents/skills/seam-code-search` or `.agents/skills/seam-code-search`
-- Claude Code: `~/.claude/skills/seam-code-search` or `.claude/skills/seam-code-search`
+By default this delegates to `npx skills add` and targets all skills.sh-supported agents. Use `--agent <name>` to target specific agents, e.g. `--agent claude-code --agent pi`.
 
 ### Local development
 

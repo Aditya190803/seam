@@ -14,9 +14,10 @@ Project-local install:
 npx @aditya190803/seam-skill install --project
 ```
 
-Single-agent installs:
+Specific-agent installs:
 
 ```bash
+npx @aditya190803/seam-skill install --agent claude-code --agent pi
 npx @aditya190803/seam-skill install --codex
 npx @aditya190803/seam-skill install --claude
 ```
@@ -32,10 +33,7 @@ seam install-skill --no-codex
 
 ## Discovery locations
 
-| Agent | User scope | Project scope |
-|---|---|---|
-| Codex | `~/.agents/skills/seam-code-search` | `.agents/skills/seam-code-search` |
-| Claude Code | `~/.claude/skills/seam-code-search` | `.claude/skills/seam-code-search` |
+The npm installer delegates to `npx skills add`, so locations follow the skills.sh supported-agent table. By default it installs globally to all supported agents with `--agent '*'`; use `--project` for project scope or `--agent <name>` to limit targets.
 
 ## What the skill tells agents
 

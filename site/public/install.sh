@@ -6,8 +6,10 @@ BRANCH="main"
 SOURCE="git"
 METHOD="auto"
 WITH_SKILLS="false"
-INSTALL_CODEX="true"
+INSTALL_AGENTS=""
+INSTALL_ALL_AGENTS="true"
 INSTALL_CLAUDE="true"
+INSTALL_PI="true"
 PROJECT_SCOPE="false"
 PYPI_PACKAGE="seam-index"
 GIT_SPEC="git+https://github.com/${REPO}.git"
@@ -26,8 +28,10 @@ Options:
   --method auto|uv|pipx|pip
                         Installer backend. auto prefers uv, then pipx, then pip --user
   --with-skills        Also install the Seam Code Search skill for AI coding agents
+  --agent <name>       With --with-skills, target a skills.sh agent (repeatable)
   --codex              With --with-skills, install only Codex skill
   --claude             With --with-skills, install only Claude Code skill
+  --pi                 With --with-skills, install only pi skill
   --project            With --with-skills, install project-level skills in current directory
   --branch <name>      GitHub branch/tag for raw skill downloads and git install metadata
   --version <tag>      Alias for --branch, e.g. --version v0.1.0
@@ -48,10 +52,14 @@ while [[ $# -gt 0 ]]; do
       METHOD="${2:-}"; shift 2 ;;
     --with-skills)
       WITH_SKILLS="true"; shift ;;
+    --agent)
+      INSTALL_ALL_AGENTS="false"; INSTALL_AGENTS="${INSTALL_AGENTS:+$INSTALL_AGENTS,}${2:-}"; INSTALL_CLAUDE="false"; INSTALL_PI="false"; shift 2 ;;
     --codex)
-      INSTALL_CODEX="true"; INSTALL_CLAUDE="false"; shift ;;
+      INSTALL_ALL_AGENTS="false"; INSTALL_AGENTS="codex"; INSTALL_CLAUDE="false"; INSTALL_PI="false"; shift ;;
     --claude)
-      INSTALL_CODEX="false"; INSTALL_CLAUDE="true"; shift ;;
+      INSTALL_ALL_AGENTS="false"; INSTALL_AGENTS=""; INSTALL_CLAUDE="true"; INSTALL_PI="false"; shift ;;
+    --pi)
+      INSTALL_ALL_AGENTS="false"; INSTALL_AGENTS=""; INSTALL_CLAUDE="false"; INSTALL_PI="true"; shift ;;
     --project)
       PROJECT_SCOPE="true"; shift ;;
     --branch|--version)
@@ -117,44 +125,29 @@ install_cli() {
   fi
 }
 
-download() {
-  local url="$1"
-  local dest="$2"
-  if have curl; then
-    curl -fsSL "$url" -o "$dest"
-  elif have wget; then
-    wget -qO "$dest" "$url"
-  else
-    echo "Need curl or wget to download skill files." >&2
-    exit 1
-  fi
-}
-
-install_one_skill() {
-  local root="$1"
-  local dest="$root/seam-code-search"
-  mkdir -p "$dest/agents"
-  download "$RAW_BASE/skills/seam-code-search/SKILL.md" "$dest/SKILL.md"
-  download "$RAW_BASE/skills/seam-code-search/agents/openai.yaml" "$dest/agents/openai.yaml"
-  echo "✓ Installed Seam Code Search skill: $dest"
-}
-
 install_skills() {
-  echo "Installing Seam Code Search agent skill..."
-  if [[ "$INSTALL_CODEX" == "true" ]]; then
-    if [[ "$PROJECT_SCOPE" == "true" ]]; then
-      install_one_skill "$PWD/.agents/skills"
-    else
-      install_one_skill "$HOME/.agents/skills"
-    fi
+  have npx || { echo "npx not found. Install Node.js or install skills manually with npx skills add." >&2; exit 1; }
+
+  echo "Installing Seam Code Search agent skill with skills.sh..."
+  local source="https://github.com/${REPO}/tree/${BRANCH}/skills"
+  local args=(skills add "$source" --skill seam-code-search --copy --yes)
+
+  if [[ "$PROJECT_SCOPE" != "true" ]]; then
+    args+=(--global)
   fi
-  if [[ "$INSTALL_CLAUDE" == "true" ]]; then
-    if [[ "$PROJECT_SCOPE" == "true" ]]; then
-      install_one_skill "$PWD/.claude/skills"
-    else
-      install_one_skill "$HOME/.claude/skills"
-    fi
+
+  if [[ "$INSTALL_ALL_AGENTS" == "true" ]]; then
+    args+=(--agent '*')
+  else
+    IFS=',' read -ra selected_agents <<< "$INSTALL_AGENTS"
+    for agent in "${selected_agents[@]}"; do
+      [[ -n "$agent" ]] && args+=(--agent "$agent")
+    done
+    [[ "$INSTALL_CLAUDE" == "true" ]] && args+=(--agent claude-code)
+    [[ "$INSTALL_PI" == "true" ]] && args+=(--agent pi)
   fi
+
+  npx "${args[@]}"
 }
 
 install_cli
