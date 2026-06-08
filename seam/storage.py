@@ -27,9 +27,24 @@ class VectorStore(Protocol):
     def file_hashes(self) -> dict[str, str]: ...
     def counts(self) -> tuple[int, int]: ...
     def language_counts(self) -> dict[str, int]: ...
-    def search(self, query_vector: list[float], query: str, *, top_k: int = 5, language: str | None = None, hybrid: bool = True) -> list[SearchResult]: ...
+    def search(
+        self,
+        query_vector: list[float],
+        query: str,
+        *,
+        top_k: int = 5,
+        language: str | None = None,
+        hybrid: bool = True,
+        name: str | None = None,
+        exclude: list[str] | None = None,
+        min_score: float | None = None,
+        exact: bool = False,
+        dedup: bool = True,
+        alpha: float = 0.82,
+    ) -> list[SearchResult]: ...
     def list_files(self, pattern: str = "*") -> list[dict[str, Any]]: ...
     def get_stored_chunk(self, file_path: str, start_line: int, end_line: int) -> str | None: ...
+    def gc_missing_files(self, repo_path: Path) -> list[str]: ...
 
 
 def _keyword_score(query: str, *, file_path: str, name: str | None, snippet: str) -> float:
@@ -41,10 +56,58 @@ def _keyword_score(query: str, *, file_path: str, name: str | None, snippet: str
     return len(query_terms & doc_terms) / len(query_terms)
 
 
-def _hybrid_score(vector_score: float, keyword_score: float, hybrid: bool) -> float:
+def _hybrid_score(vector_score: float, keyword_score: float, hybrid: bool, alpha: float = 0.82) -> float:
     if not hybrid:
         return vector_score
-    return (0.82 * vector_score) + (0.18 * keyword_score)
+    alpha = min(max(alpha, 0.0), 1.0)
+    return (alpha * vector_score) + ((1.0 - alpha) * keyword_score)
+
+
+def _matches_filters(row: sqlite3.Row, *, name: str | None, exclude: list[str] | None) -> bool:
+    file_path = str(row["file_path"])
+    if name and not fnmatch.fnmatch(file_path, name):
+        return False
+    return not any(fnmatch.fnmatch(file_path, pattern) for pattern in (exclude or []))
+
+
+def _exact_score(pattern: str, row: sqlite3.Row) -> float | None:
+    haystack = f"{row['file_path']} {row['name'] or ''}\n{row['snippet']}"
+    try:
+        matches = re.findall(pattern, haystack, flags=re.IGNORECASE | re.MULTILINE)
+        if matches:
+            return float(len(matches))
+    except re.error:
+        pass
+    lowered_pattern = pattern.lower()
+    lowered_haystack = haystack.lower()
+    count = lowered_haystack.count(lowered_pattern)
+    if count:
+        return float(count)
+    return None
+
+
+def _dedupe_scored_rows(scored: list[tuple[float, sqlite3.Row]]) -> list[tuple[float, sqlite3.Row]]:
+    seen: set[str] = set()
+    unique: list[tuple[float, sqlite3.Row]] = []
+    for score, row in scored:
+        key = str(row["content_hash"] or row["snippet"])
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append((score, row))
+    return unique
+
+
+def _dedupe_scored_dicts(scored: list[tuple[float, dict[str, Any]]]) -> list[tuple[float, dict[str, Any]]]:
+    seen: set[str] = set()
+    unique: list[tuple[float, dict[str, Any]]] = []
+    for score, item in scored:
+        key = str(item.get("content_hash") or item.get("snippet") or item.get("id"))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append((score, item))
+    return unique
 
 
 class SQLiteStore:
@@ -86,6 +149,9 @@ class SQLiteStore:
                     language TEXT NOT NULL,
                     name TEXT,
                     content_hash TEXT NOT NULL,
+                    scope TEXT,
+                    scope_start_line INTEGER,
+                    scope_end_line INTEGER,
                     snippet TEXT NOT NULL,
                     embedding TEXT NOT NULL,
                     updated_at TEXT NOT NULL,
@@ -95,6 +161,13 @@ class SQLiteStore:
                 CREATE INDEX IF NOT EXISTS idx_chunks_language ON chunks(language);
                 """
             )
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(chunks)").fetchall()}
+            if "scope" not in columns:
+                db.execute("ALTER TABLE chunks ADD COLUMN scope TEXT")
+            if "scope_start_line" not in columns:
+                db.execute("ALTER TABLE chunks ADD COLUMN scope_start_line INTEGER")
+            if "scope_end_line" not in columns:
+                db.execute("ALTER TABLE chunks ADD COLUMN scope_end_line INTEGER")
 
     def clear(self) -> None:
         with self.connect() as db:
@@ -164,6 +237,9 @@ class SQLiteStore:
                     chunk.language,
                     chunk.name,
                     chunk.content_hash,
+                    chunk.scope,
+                    chunk.scope_start_line,
+                    chunk.scope_end_line,
                     chunk.snippet,
                     json.dumps(embedding),
                     now,
@@ -172,8 +248,8 @@ class SQLiteStore:
         with self.connect() as db:
             db.executemany(
                 """
-                INSERT INTO chunks(id, file_path, start_line, end_line, language, name, content_hash, snippet, embedding, updated_at)
-                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO chunks(id, file_path, start_line, end_line, language, name, content_hash, scope, scope_start_line, scope_end_line, snippet, embedding, updated_at)
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     file_path=excluded.file_path,
                     start_line=excluded.start_line,
@@ -181,6 +257,9 @@ class SQLiteStore:
                     language=excluded.language,
                     name=excluded.name,
                     content_hash=excluded.content_hash,
+                    scope=excluded.scope,
+                    scope_start_line=excluded.scope_start_line,
+                    scope_end_line=excluded.scope_end_line,
                     snippet=excluded.snippet,
                     embedding=excluded.embedding,
                     updated_at=excluded.updated_at
@@ -214,19 +293,46 @@ class SQLiteStore:
         with self.connect() as db:
             return db.execute("SELECT * FROM chunks WHERE id = ?", (chunk_id,)).fetchone()
 
-    def search(self, query_vector: list[float], query: str, *, top_k: int = 5, language: str | None = None, hybrid: bool = True) -> list[SearchResult]:
+    def search(
+        self,
+        query_vector: list[float],
+        query: str,
+        *,
+        top_k: int = 5,
+        language: str | None = None,
+        hybrid: bool = True,
+        name: str | None = None,
+        exclude: list[str] | None = None,
+        min_score: float | None = None,
+        exact: bool = False,
+        dedup: bool = True,
+        alpha: float = 0.82,
+    ) -> list[SearchResult]:
         scored: list[tuple[float, sqlite3.Row]] = []
         for row in self.iter_chunk_rows(language=language):
-            embedding = json.loads(row["embedding"])
-            vector_score = max(0.0, cosine(query_vector, embedding))
-            score = _hybrid_score(
-                vector_score,
-                _keyword_score(query, file_path=row["file_path"], name=row["name"], snippet=row["snippet"]),
-                hybrid,
-            )
+            if not _matches_filters(row, name=name, exclude=exclude):
+                continue
+            if exact:
+                exact_score = _exact_score(query, row)
+                if exact_score is None:
+                    continue
+                score = exact_score
+            else:
+                embedding = json.loads(row["embedding"])
+                vector_score = max(0.0, cosine(query_vector, embedding))
+                score = _hybrid_score(
+                    vector_score,
+                    _keyword_score(query, file_path=row["file_path"], name=row["name"], snippet=row["snippet"]),
+                    hybrid,
+                    alpha,
+                )
+            if min_score is not None and score < min_score:
+                continue
             scored.append((score, row))
 
         scored.sort(key=lambda item: item[0], reverse=True)
+        if dedup:
+            scored = _dedupe_scored_rows(scored)
         results: list[SearchResult] = []
         for rank, (score, row) in enumerate(scored[:top_k], start=1):
             results.append(_row_to_result(rank, score, row))
@@ -258,6 +364,14 @@ class SQLiteStore:
             ).fetchone()
         return None if row is None else str(row["snippet"])
 
+    def gc_missing_files(self, repo_path: Path) -> list[str]:
+        removed: list[str] = []
+        for relative_path in list(self.file_hashes()):
+            if not (repo_path / relative_path).exists():
+                self.delete_file(relative_path)
+                removed.append(relative_path)
+        return removed
+
 
 def _row_to_result(rank: int, score: float, row: sqlite3.Row) -> SearchResult:
     return SearchResult(
@@ -269,6 +383,9 @@ def _row_to_result(rank: int, score: float, row: sqlite3.Row) -> SearchResult:
         language=row["language"],
         snippet=row["snippet"],
         name=row["name"],
+        scope=row["scope"],
+        scope_start_line=row["scope_start_line"],
+        scope_end_line=row["scope_end_line"],
     )
 
 
@@ -335,6 +452,9 @@ class LanceDBStore:
                     "language": row["language"],
                     "name": row["name"] or "",
                     "content_hash": row["content_hash"],
+                    "scope": row["scope"],
+                    "scope_start_line": row["scope_start_line"],
+                    "scope_end_line": row["scope_end_line"],
                     "snippet": row["snippet"],
                     "vector": json.loads(row["embedding"]),
                 }
@@ -349,7 +469,35 @@ class LanceDBStore:
         if rows:
             db.create_table(self.table_name, data=rows)
 
-    def search(self, query_vector: list[float], query: str, *, top_k: int = 5, language: str | None = None, hybrid: bool = True) -> list[SearchResult]:
+    def search(
+        self,
+        query_vector: list[float],
+        query: str,
+        *,
+        top_k: int = 5,
+        language: str | None = None,
+        hybrid: bool = True,
+        name: str | None = None,
+        exclude: list[str] | None = None,
+        min_score: float | None = None,
+        exact: bool = False,
+        dedup: bool = True,
+        alpha: float = 0.82,
+    ) -> list[SearchResult]:
+        if name or exclude or min_score is not None or exact:
+            return self.meta.search(
+                query_vector,
+                query,
+                top_k=top_k,
+                language=language,
+                hybrid=hybrid,
+                name=name,
+                exclude=exclude,
+                min_score=min_score,
+                exact=exact,
+                dedup=dedup,
+                alpha=alpha,
+            )
         try:
             db = self._connect()
             if self.table_name not in self._table_names(db):
@@ -362,7 +510,7 @@ class LanceDBStore:
                 builder = builder.where(f"language = '{safe_language}'")
             candidates = builder.limit(limit).to_list()
         except Exception:
-            return self.meta.search(query_vector, query, top_k=top_k, language=language, hybrid=hybrid)
+            return self.meta.search(query_vector, query, top_k=top_k, language=language, hybrid=hybrid, dedup=dedup)
 
         scored: list[tuple[float, dict[str, Any]]] = []
         for item in candidates:
@@ -372,9 +520,12 @@ class LanceDBStore:
                 vector_score,
                 _keyword_score(query, file_path=item["file_path"], name=item.get("name"), snippet=item.get("snippet", "")),
                 hybrid,
+                alpha,
             )
             scored.append((score, item))
         scored.sort(key=lambda entry: entry[0], reverse=True)
+        if dedup:
+            scored = _dedupe_scored_dicts(scored)
         return [_dict_to_result(rank, score, item) for rank, (score, item) in enumerate(scored[:top_k], start=1)]
 
 
@@ -473,7 +624,35 @@ class QdrantStore:
         if points:
             self._client().upsert(collection_name=self.collection_name, points=points)
 
-    def search(self, query_vector: list[float], query: str, *, top_k: int = 5, language: str | None = None, hybrid: bool = True) -> list[SearchResult]:
+    def search(
+        self,
+        query_vector: list[float],
+        query: str,
+        *,
+        top_k: int = 5,
+        language: str | None = None,
+        hybrid: bool = True,
+        name: str | None = None,
+        exclude: list[str] | None = None,
+        min_score: float | None = None,
+        exact: bool = False,
+        dedup: bool = True,
+        alpha: float = 0.82,
+    ) -> list[SearchResult]:
+        if name or exclude or min_score is not None or exact:
+            return self.meta.search(
+                query_vector,
+                query,
+                top_k=top_k,
+                language=language,
+                hybrid=hybrid,
+                name=name,
+                exclude=exclude,
+                min_score=min_score,
+                exact=exact,
+                dedup=dedup,
+                alpha=alpha,
+            )
         try:
             from qdrant_client.http import models
 
@@ -502,7 +681,7 @@ class QdrantStore:
                     with_payload=True,
                 ).points
         except Exception:
-            return self.meta.search(query_vector, query, top_k=top_k, language=language, hybrid=hybrid)
+            return self.meta.search(query_vector, query, top_k=top_k, language=language, hybrid=hybrid, dedup=dedup)
 
         scored: list[tuple[float, sqlite3.Row]] = []
         for point in response:
@@ -518,9 +697,12 @@ class QdrantStore:
                 vector_score,
                 _keyword_score(query, file_path=row["file_path"], name=row["name"], snippet=row["snippet"]),
                 hybrid,
+                alpha,
             )
             scored.append((score, row))
         scored.sort(key=lambda entry: entry[0], reverse=True)
+        if dedup:
+            scored = _dedupe_scored_rows(scored)
         return [_row_to_result(rank, score, row) for rank, (score, row) in enumerate(scored[:top_k], start=1)]
 
 
@@ -535,6 +717,9 @@ def _dict_to_result(rank: int, score: float, item: dict[str, Any]) -> SearchResu
         language=str(item["language"]),
         snippet=str(item.get("snippet", "")),
         name=str(name) if name else None,
+        scope=str(item["scope"]) if item.get("scope") else None,
+        scope_start_line=int(item["scope_start_line"]) if item.get("scope_start_line") else None,
+        scope_end_line=int(item["scope_end_line"]) if item.get("scope_end_line") else None,
     )
 
 

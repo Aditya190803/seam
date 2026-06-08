@@ -20,6 +20,10 @@ def helper():
     assert "AuthService" in names
     assert "validate_jwt" in names
     assert "helper" in names
+    method = next(chunk for chunk in chunks if chunk.name == "validate_jwt")
+    assert method.scope == "AuthService"
+    assert method.scope_start_line == 1
+    assert method.scope_end_line == 3
     assert all(chunk.content_hash for chunk in chunks)
     assert all(chunk.id for chunk in chunks)
 

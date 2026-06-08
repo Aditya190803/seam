@@ -21,6 +21,7 @@ class SeamConfig:
     qdrant_url: str | None = None
     qdrant_api_key_env: str = "QDRANT_API_KEY"
     hybrid_search: bool = True
+    hybrid_alpha: float = 0.82
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SeamConfig:
@@ -76,6 +77,8 @@ def set_config_value(key: str, value: str) -> SeamConfig:
     current = getattr(config, key)
     if isinstance(current, bool):
         parsed: Any = value.lower() in {"1", "true", "yes", "on"}
+    elif isinstance(current, float):
+        parsed = float(value)
     elif current is None and key.endswith("_url") and value.lower() in {"", "none", "null"}:
         parsed = None
     else:

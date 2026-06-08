@@ -55,7 +55,6 @@ TREE_SITTER_NODE_KINDS = {
     "function_item",
     "method_definition",
     "method_declaration",
-    "method_definition",
     "class_declaration",
     "class_body",
     "interface_declaration",
@@ -110,7 +109,7 @@ def chunk_text(path: str, text: str, language: str) -> list[CodeChunk]:
 
     if not chunks:
         chunks = _chunk_by_window(path, lines, language)
-    return _finalize(chunks)
+    return _finalize(_attach_enclosing_scopes(chunks))
 
 
 def _chunk_tree_sitter(path: str, text: str, lines: list[str], language: str) -> list[CodeChunk]:
@@ -213,6 +212,11 @@ def _chunk_python(path: str, text: str, lines: list[str]) -> list[CodeChunk]:
     except SyntaxError:
         return []
 
+    parent_by_child: dict[ast.AST, ast.AST] = {}
+    for parent in ast.walk(tree):
+        for child in ast.iter_child_nodes(parent):
+            parent_by_child[child] = parent
+
     chunks: list[CodeChunk] = []
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
@@ -221,6 +225,7 @@ def _chunk_python(path: str, text: str, lines: list[str]) -> list[CodeChunk]:
         end = getattr(node, "end_lineno", None)
         if not start or not end:
             continue
+        scope_node = _python_scope_node(node, parent_by_child)
         chunks.append(
             CodeChunk(
                 file_path=path,
@@ -229,14 +234,25 @@ def _chunk_python(path: str, text: str, lines: list[str]) -> list[CodeChunk]:
                 language="python",
                 snippet=_slice(lines, start, end),
                 name=getattr(node, "name", None),
+                scope=getattr(scope_node, "name", None) if scope_node is not None else None,
+                scope_start_line=getattr(scope_node, "lineno", None) if scope_node is not None else None,
+                scope_end_line=getattr(scope_node, "end_lineno", None) if scope_node is not None else None,
             )
         )
     return sorted(_split_large_chunks(chunks, lines), key=lambda chunk: (chunk.start_line, chunk.end_line))
 
 
+def _python_scope_node(node: ast.AST, parent_by_child: dict[ast.AST, ast.AST]) -> ast.AST | None:
+    parent = parent_by_child.get(node)
+    while parent is not None:
+        if isinstance(parent, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            return parent
+        parent = parent_by_child.get(parent)
+    return None
+
+
 def _chunk_js_like(path: str, lines: list[str], language: str) -> list[CodeChunk]:
     chunks: list[CodeChunk] = []
-    used_starts: set[int] = set()
     for index, line in enumerate(lines, start=1):
         match = JS_DECL_RE.match(line)
         if not match:
@@ -245,7 +261,6 @@ def _chunk_js_like(path: str, lines: list[str], language: str) -> list[CodeChunk
         end = _find_brace_end(lines, index)
         if end <= index and not line.rstrip().endswith(";"):
             end = min(len(lines), index + 40)
-        used_starts.add(index)
         chunks.append(CodeChunk(path, index, end, language, _slice(lines, index, end), name=name))
     return sorted(_split_large_chunks(chunks, lines), key=lambda chunk: (chunk.start_line, chunk.end_line))
 
@@ -305,6 +320,28 @@ def _chunk_by_window(path: str, lines: list[str], language: str, *, size: int = 
     return chunks
 
 
+def _attach_enclosing_scopes(chunks: list[CodeChunk]) -> list[CodeChunk]:
+    for chunk in chunks:
+        if chunk.scope:
+            continue
+        candidates = [
+            candidate
+            for candidate in chunks
+            if candidate is not chunk
+            and candidate.name
+            and candidate.start_line <= chunk.start_line
+            and candidate.end_line >= chunk.end_line
+            and (candidate.start_line, candidate.end_line) != (chunk.start_line, chunk.end_line)
+        ]
+        if not candidates:
+            continue
+        scope = min(candidates, key=lambda candidate: candidate.end_line - candidate.start_line)
+        chunk.scope = scope.name
+        chunk.scope_start_line = scope.start_line
+        chunk.scope_end_line = scope.end_line
+    return chunks
+
+
 def _split_large_chunks(chunks: list[CodeChunk], lines: list[str], *, max_lines: int = 180) -> list[CodeChunk]:
     output: list[CodeChunk] = []
     for chunk in chunks:
@@ -323,6 +360,9 @@ def _split_large_chunks(chunks: list[CodeChunk], lines: list[str], *, max_lines:
                     language=chunk.language,
                     snippet=_slice(lines, start, end),
                     name=f"{chunk.name or 'chunk'}_part_{part}",
+                    scope=chunk.scope,
+                    scope_start_line=chunk.scope_start_line,
+                    scope_end_line=chunk.scope_end_line,
                 )
             )
             part += 1

@@ -19,6 +19,9 @@ class CodeChunk:
     name: str | None = None
     content_hash: str | None = None
     id: str | None = None
+    scope: str | None = None
+    scope_start_line: int | None = None
+    scope_end_line: int | None = None
 
 
 @dataclass(slots=True)
@@ -31,6 +34,9 @@ class SearchResult:
     language: str
     snippet: str
     name: str | None = None
+    scope: str | None = None
+    scope_start_line: int | None = None
+    scope_end_line: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -44,6 +50,12 @@ class SearchResult:
         }
         if self.name:
             payload["name"] = self.name
+        if self.scope:
+            payload["scope"] = self.scope
+        if self.scope_start_line is not None:
+            payload["scope_start_line"] = self.scope_start_line
+        if self.scope_end_line is not None:
+            payload["scope_end_line"] = self.scope_end_line
         return payload
 
 
@@ -64,6 +76,9 @@ class IndexStats:
     languages: dict[str, int] = field(default_factory=dict)
     tree_hash: str | None = None
     warnings: list[str] = field(default_factory=list)
+    updated_file_paths: list[str] = field(default_factory=list)
+    deleted_file_paths: list[str] = field(default_factory=list)
+    branch: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -82,4 +97,7 @@ class IndexStats:
             "languages": self.languages,
             "tree_hash": self.tree_hash,
             "warnings": self.warnings,
+            "updated_file_paths": self.updated_file_paths,
+            "deleted_file_paths": self.deleted_file_paths,
+            "branch": self.branch,
         }

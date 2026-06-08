@@ -8,13 +8,37 @@ from .models import SearchResult
 from .storage import create_store
 
 
-def search_code(query: str, *, top_k: int = 5, path: Path | None = None, language: str | None = None) -> list[SearchResult]:
+def search_code(
+    query: str,
+    *,
+    top_k: int = 5,
+    path: Path | None = None,
+    language: str | None = None,
+    name: str | None = None,
+    exclude: list[str] | None = None,
+    min_score: float | None = None,
+    exact: bool = False,
+    dedup: bool = True,
+    alpha: float | None = None,
+) -> list[SearchResult]:
     config = load_config()
     entry = resolve_repo(path)
     store = create_store(Path(entry["index_path"]), config.backend, config)
     embedder = create_embedder(config)
     query_vector = embedder.embed(query)
-    return store.search(query_vector, query, top_k=top_k, language=language, hybrid=config.hybrid_search)
+    return store.search(
+        query_vector,
+        query,
+        top_k=top_k,
+        language=language,
+        hybrid=config.hybrid_search,
+        name=name,
+        exclude=exclude,
+        min_score=min_score,
+        exact=exact,
+        dedup=dedup,
+        alpha=config.hybrid_alpha if alpha is None else alpha,
+    )
 
 
 def list_indexed_files(pattern: str = "*", *, path: Path | None = None) -> list[dict[str, object]]:
